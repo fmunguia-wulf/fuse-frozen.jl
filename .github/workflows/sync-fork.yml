@@ -1,0 +1,40 @@
+name: Sync fork with upstream
+
+on:
+  schedule:
+    - cron: "23 5 * * *" # daily, off the hour
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.SYNC_TOKEN }}
+
+      - name: Rebase onto upstream's default branch
+        env:
+          GH_TOKEN: ${{ secrets.SYNC_TOKEN }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          branch="${GITHUB_REF#refs/heads/}"
+          upstream_repo="$(gh api "repos/$GITHUB_REPOSITORY" --jq .parent.full_name)"
+
+          # This repo's own commits that add/update this workflow file necessarily
+          # live on the default branch (scheduled workflows only fire from what's
+          # there), so this branch is never a strict ancestor of upstream once that
+          # exists. A plain fast-forward merge (e.g. `gh repo sync`) refuses to
+          # merge as soon as upstream moves past that point -- rebasing our
+          # workflow-file commit(s) on top of upstream's latest instead tolerates
+          # that indefinitely, with no manual reconciliation ever needed.
+          git remote add upstream "https://github.com/$upstream_repo.git"
+          git fetch upstream "$branch"
+          git rebase "upstream/$branch"
+          git push --force-with-lease origin "$branch"
