@@ -179,7 +179,7 @@ function case_parameters(::Val{:D3D}, shot::Int;
             $(upsync_command(omfit_host, ["$(local_path)/remote_slurm.sh"], remote_path))
 
             # Execute script remotely
-            $(ssh_command(omfit_host, "\"module load omfit; cd $remote_path && bash remote_slurm.sh\""))
+            $(ssh_command(omfit_host, "\"module load omfit; cd $remote_path && bash -l remote_slurm.sh\""))
 
             # Retrieve results using rsync
             $(downsync_command(omfit_host, pull_gslite_min ? ["$remote_path/$(filename)"] : ["$remote_path/$(filename)", "$remote_path/nbi_ods_$shot.h5", "$remote_path/beams_$shot.dat"], local_path))
