@@ -1,8 +1,12 @@
 name: CompatHelper
 
 on:
-  schedule:
-    - cron: 0 0 * * *
+  # Disabled on this fork -- upstream (ProjectTorreyPines/FUSE.jl) already runs
+  # its own CompatHelper. Having this fork's CompatHelper also run created
+  # independent, competing [compat] bump commits in Project.toml that broke
+  # the daily rebase-based sync-fork.yml (same lines edited differently by
+  # both bots, on different schedules -> permanent recurring rebase conflict).
+  # Kept as workflow_dispatch only, in case a manual run is ever needed.
   workflow_dispatch:
 
 jobs:
